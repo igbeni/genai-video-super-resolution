@@ -26,6 +26,9 @@ module "s3_buckets" {
   enable_lifecycle_rules             = var.enable_lifecycle_rules
   intermediate_files_expiration_days = var.intermediate_files_expiration_days
 
+  # Enable KMS encryption for S3 buckets
+  use_kms = true
+
   # Tags
   tags = var.default_tags
 }
