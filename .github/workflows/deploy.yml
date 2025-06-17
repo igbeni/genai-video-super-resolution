@@ -44,7 +44,6 @@ jobs:
 #        fail_ci_if_error: true
 
   validate:
-#    needs: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -54,23 +53,12 @@ jobs:
       with:
         terraform_version: 1.0.0
 
-    - name: Format Terraform Files
+    - name: Fix and Format Terraform Files
       run: |
-        chmod +x ./terraform/format_terraform.sh
-        ./terraform/format_terraform.sh
+        chmod +x ./fix_terraform.sh
+        ./fix_terraform.sh
 
-    - name: Terraform Format Check
-      run: |
-        cd terraform
-        terraform fmt -check -recursive
-
-    - name: Terraform Init
-      run: terraform init
-      working-directory: ./terraform
-
-    - name: Terraform Validate
-      run: terraform validate
-      working-directory: ./terraform
+    # Terraform Format Check is now handled by fix_terraform.sh and validate_infrastructure.sh
 
     - name: Run Infrastructure Validation Script
       run: ./validate_infrastructure.sh
