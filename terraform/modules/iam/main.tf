@@ -168,7 +168,7 @@ resource "aws_iam_policy" "ec2_cloudwatch_access" {
           "logs:PutLogEvents",
           "logs:DescribeLogStreams"
         ]
-        Effect = "Allow"
+        Effect   = "Allow"
         Resource = "arn:aws:logs:*:*:*"
       }
     ]
@@ -274,7 +274,7 @@ resource "aws_iam_policy" "batch_job_cloudwatch_access" {
           "logs:PutLogEvents",
           "logs:DescribeLogStreams"
         ]
-        Effect = "Allow"
+        Effect   = "Allow"
         Resource = "arn:aws:logs:*:*:*"
       }
     ]
@@ -360,7 +360,7 @@ resource "aws_iam_policy" "sagemaker_cloudwatch_access" {
           "logs:PutLogEvents",
           "logs:DescribeLogStreams"
         ]
-        Effect = "Allow"
+        Effect   = "Allow"
         Resource = "arn:aws:logs:*:*:*"
       }
     ]
@@ -386,7 +386,7 @@ resource "aws_iam_policy" "sagemaker_ecr_access" {
           "ecr:BatchGetImage",
           "ecr:BatchCheckLayerAvailability"
         ]
-        Effect = "Allow"
+        Effect   = "Allow"
         Resource = "*"
       }
     ]

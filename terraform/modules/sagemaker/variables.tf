@@ -20,13 +20,13 @@ variable "realesrgan_image_uri" {
 variable "realesrgan_model_data_url" {
   description = "S3 URL to the Real-ESRGAN model data"
   type        = string
-  default     = null  # If model is included in the container, this can be null
+  default     = null # If model is included in the container, this can be null
 }
 
 variable "realesrgan_instance_type" {
   description = "Instance type for Real-ESRGAN endpoint"
   type        = string
-  default     = "ml.g4dn.xlarge"  # GPU instance suitable for inference
+  default     = "ml.g4dn.xlarge" # GPU instance suitable for inference
 }
 
 variable "realesrgan_instance_count" {
@@ -44,13 +44,13 @@ variable "swinir_image_uri" {
 variable "swinir_model_data_url" {
   description = "S3 URL to the SwinIR model data"
   type        = string
-  default     = null  # If model is included in the container, this can be null
+  default     = null # If model is included in the container, this can be null
 }
 
 variable "swinir_instance_type" {
   description = "Instance type for SwinIR endpoint"
   type        = string
-  default     = "ml.g4dn.xlarge"  # GPU instance suitable for inference
+  default     = "ml.g4dn.xlarge" # GPU instance suitable for inference
 }
 
 variable "swinir_instance_count" {
@@ -75,14 +75,14 @@ variable "max_endpoint_capacity" {
 variable "target_cpu_utilization" {
   description = "Target CPU utilization for auto-scaling"
   type        = number
-  default     = 75  # 75% CPU utilization
+  default     = 75 # 75% CPU utilization
 }
 
 # CloudWatch alarm variables
 variable "error_threshold" {
   description = "Threshold for SageMaker endpoint error alarms"
   type        = number
-  default     = 5  # 5 errors
+  default     = 5 # 5 errors
 }
 
 variable "alarm_actions" {

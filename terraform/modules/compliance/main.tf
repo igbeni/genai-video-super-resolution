@@ -5,7 +5,7 @@
 resource "aws_config_configuration_recorder" "recorder" {
   name     = "${var.name_prefix}-config-recorder"
   role_arn = aws_iam_role.config_role.arn
-  
+
   recording_group {
     all_supported                 = true
     include_global_resource_types = true
@@ -17,11 +17,11 @@ resource "aws_config_delivery_channel" "delivery_channel" {
   name           = "${var.name_prefix}-config-delivery-channel"
   s3_bucket_name = var.config_bucket_name
   s3_key_prefix  = "config"
-  
+
   snapshot_delivery_properties {
     delivery_frequency = var.config_delivery_frequency
   }
-  
+
   depends_on = [aws_config_configuration_recorder.recorder]
 }
 
@@ -29,14 +29,14 @@ resource "aws_config_delivery_channel" "delivery_channel" {
 resource "aws_config_configuration_recorder_status" "recorder_status" {
   name       = aws_config_configuration_recorder.recorder.name
   is_enabled = true
-  
+
   depends_on = [aws_config_delivery_channel.delivery_channel]
 }
 
 # IAM Role for AWS Config
 resource "aws_iam_role" "config_role" {
   name = "${var.name_prefix}-config-role"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -49,7 +49,7 @@ resource "aws_iam_role" "config_role" {
       }
     ]
   })
-  
+
   tags = var.tags
 }
 
@@ -57,7 +57,7 @@ resource "aws_iam_role" "config_role" {
 resource "aws_iam_policy" "config_policy" {
   name        = "${var.name_prefix}-config-policy"
   description = "Policy for AWS Config to access resources and deliver to S3"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -111,87 +111,87 @@ resource "aws_iam_role_policy_attachment" "config_managed_policy" {
 resource "aws_config_config_rule" "s3_bucket_public_read_prohibited" {
   name        = "s3-bucket-public-read-prohibited"
   description = "Checks that your S3 buckets do not allow public read access"
-  
+
   source {
     owner             = "AWS"
     source_identifier = "S3_BUCKET_PUBLIC_READ_PROHIBITED"
   }
-  
+
   depends_on = [aws_config_configuration_recorder.recorder]
 }
 
 resource "aws_config_config_rule" "s3_bucket_public_write_prohibited" {
   name        = "s3-bucket-public-write-prohibited"
   description = "Checks that your S3 buckets do not allow public write access"
-  
+
   source {
     owner             = "AWS"
     source_identifier = "S3_BUCKET_PUBLIC_WRITE_PROHIBITED"
   }
-  
+
   depends_on = [aws_config_configuration_recorder.recorder]
 }
 
 resource "aws_config_config_rule" "s3_bucket_ssl_requests_only" {
   name        = "s3-bucket-ssl-requests-only"
   description = "Checks whether S3 buckets have policies that require requests to use SSL"
-  
+
   source {
     owner             = "AWS"
     source_identifier = "S3_BUCKET_SSL_REQUESTS_ONLY"
   }
-  
+
   depends_on = [aws_config_configuration_recorder.recorder]
 }
 
 resource "aws_config_config_rule" "s3_bucket_server_side_encryption_enabled" {
   name        = "s3-bucket-server-side-encryption-enabled"
   description = "Checks whether S3 bucket have encryption enabled"
-  
+
   source {
     owner             = "AWS"
     source_identifier = "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"
   }
-  
+
   depends_on = [aws_config_configuration_recorder.recorder]
 }
 
 resource "aws_config_config_rule" "cloudtrail_enabled" {
   name        = "cloudtrail-enabled"
   description = "Checks whether AWS CloudTrail is enabled in your AWS account"
-  
+
   source {
     owner             = "AWS"
     source_identifier = "CLOUD_TRAIL_ENABLED"
   }
-  
+
   depends_on = [aws_config_configuration_recorder.recorder]
 }
 
 resource "aws_config_config_rule" "cloudwatch_log_group_encrypted" {
   name        = "cloudwatch-log-group-encrypted"
   description = "Checks whether CloudWatch Log Groups are encrypted"
-  
+
   source {
     owner             = "AWS"
     source_identifier = "CLOUDWATCH_LOG_GROUP_ENCRYPTED"
   }
-  
+
   depends_on = [aws_config_configuration_recorder.recorder]
 }
 
 # Lambda Function for Generating Compliance Reports
 resource "aws_lambda_function" "compliance_report_generator" {
-  function_name    = "${var.name_prefix}-compliance-report-generator"
-  role             = aws_iam_role.lambda_role.arn
-  handler          = "index.handler"
-  runtime          = "python3.9"
-  timeout          = 300
-  memory_size      = 256
-  
+  function_name = "${var.name_prefix}-compliance-report-generator"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "index.handler"
+  runtime       = "python3.9"
+  timeout       = 300
+  memory_size   = 256
+
   filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
-  
+
   environment {
     variables = {
       CONFIG_BUCKET_NAME = var.config_bucket_name
@@ -199,14 +199,14 @@ resource "aws_lambda_function" "compliance_report_generator" {
       SNS_TOPIC_ARN      = var.sns_topic_arn
     }
   }
-  
+
   tags = var.tags
 }
 
 # Lambda IAM Role
 resource "aws_iam_role" "lambda_role" {
   name = "${var.name_prefix}-compliance-report-lambda-role"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -219,7 +219,7 @@ resource "aws_iam_role" "lambda_role" {
       }
     ]
   })
-  
+
   tags = var.tags
 }
 
@@ -227,7 +227,7 @@ resource "aws_iam_role" "lambda_role" {
 resource "aws_iam_policy" "lambda_policy" {
   name        = "${var.name_prefix}-compliance-report-lambda-policy"
   description = "Policy for Lambda to generate compliance reports"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -245,7 +245,7 @@ resource "aws_iam_policy" "lambda_policy" {
           "s3:GetObject",
           "s3:ListBucket"
         ]
-        Effect   = "Allow"
+        Effect = "Allow"
         Resource = [
           "arn:aws:s3:::${var.config_bucket_name}",
           "arn:aws:s3:::${var.config_bucket_name}/*"
@@ -255,7 +255,7 @@ resource "aws_iam_policy" "lambda_policy" {
         Action = [
           "s3:PutObject"
         ]
-        Effect   = "Allow"
+        Effect = "Allow"
         Resource = [
           "arn:aws:s3:::${var.report_bucket_name}",
           "arn:aws:s3:::${var.report_bucket_name}/*"
@@ -291,7 +291,7 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 data "archive_file" "lambda_zip" {
   type        = "zip"
   output_path = "${path.module}/lambda_function.zip"
-  
+
   source {
     content  = <<EOF
 import boto3
@@ -401,7 +401,7 @@ resource "aws_cloudwatch_event_rule" "compliance_report_schedule" {
   name                = "${var.name_prefix}-compliance-report-schedule"
   description         = "Trigger compliance report generation on schedule"
   schedule_expression = var.report_schedule
-  
+
   tags = var.tags
 }
 

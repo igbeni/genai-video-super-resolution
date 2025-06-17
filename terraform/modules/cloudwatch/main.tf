@@ -256,11 +256,11 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
             ["AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonCloudWatch"],
             ["AWS/Billing", "EstimatedCharges", "ServiceName", "AWSBatch"]
           ]
-          period = 86400
-          stat   = "Maximum"
-          region = "us-east-1"
-          title  = "Estimated Charges by Service"
-          view   = "timeSeries"
+          period  = 86400
+          stat    = "Maximum"
+          region  = "us-east-1"
+          title   = "Estimated Charges by Service"
+          view    = "timeSeries"
           stacked = false
         }
       },
@@ -278,11 +278,11 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
             ["AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonEC2", "UsageType", "BoxUsage:g5.2xlarge"],
             ["AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonEC2", "UsageType", "SpotUsage"]
           ]
-          period = 86400
-          stat   = "Maximum"
-          region = "us-east-1"
-          title  = "EC2 Costs by Instance Type"
-          view   = "timeSeries"
+          period  = 86400
+          stat    = "Maximum"
+          region  = "us-east-1"
+          title   = "EC2 Costs by Instance Type"
+          view    = "timeSeries"
           stacked = false
         }
       },
@@ -299,11 +299,11 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
             ["AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonS3", "StorageType", "GlacierStorage"],
             ["AWS/Billing", "EstimatedCharges", "ServiceName", "AmazonS3", "UsageType", "DataTransfer-Out-Bytes"]
           ]
-          period = 86400
-          stat   = "Maximum"
-          region = "us-east-1"
-          title  = "S3 Costs by Storage Class and Data Transfer"
-          view   = "timeSeries"
+          period  = 86400
+          stat    = "Maximum"
+          region  = "us-east-1"
+          title   = "S3 Costs by Storage Class and Data Transfer"
+          view    = "timeSeries"
           stacked = false
         }
       },
@@ -319,11 +319,11 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
             ["AWS/Billing", "EstimatedCharges", "Project", var.project_name],
             ["AWS/Billing", "EstimatedCharges", "CostCenter", var.cost_center]
           ]
-          period = 86400
-          stat   = "Maximum"
-          region = "us-east-1"
-          title  = "Costs by Tag"
-          view   = "timeSeries"
+          period  = 86400
+          stat    = "Maximum"
+          region  = "us-east-1"
+          title   = "Costs by Tag"
+          view    = "timeSeries"
           stacked = false
         }
       },
@@ -338,25 +338,25 @@ resource "aws_cloudwatch_dashboard" "cost_dashboard" {
             ["AWS/Billing", "EstimatedCharges", "Environment", var.environment],
             [{
               expression = "FILL(METRICS(), 0)",
-              label = "Total Cost",
-              id = "total"
+              label      = "Total Cost",
+              id         = "total"
             }],
             [{
               expression = "IF(total>${var.monthly_budget}*0.8,${var.monthly_budget}*0.8,total)",
-              label = "80% of Budget",
-              id = "warning"
+              label      = "80% of Budget",
+              id         = "warning"
             }],
             [{
               expression = "IF(total>${var.monthly_budget},${var.monthly_budget},total)",
-              label = "Budget Limit",
-              id = "critical"
+              label      = "Budget Limit",
+              id         = "critical"
             }]
           ]
-          period = 86400
-          stat   = "Maximum"
-          region = "us-east-1"
-          title  = "Budget Tracking"
-          view   = "timeSeries"
+          period  = 86400
+          stat    = "Maximum"
+          region  = "us-east-1"
+          title   = "Budget Tracking"
+          view    = "timeSeries"
           stacked = false
           annotations = {
             horizontal = [
@@ -558,13 +558,13 @@ resource "aws_lambda_function" "auto_scale_down" {
   function_name = "${var.name_prefix}-auto-scale-down"
   description   = "Automatically scales down idle EC2 instances"
 
-  role          = var.lambda_role_arn
-  handler       = "index.handler"
-  runtime       = "nodejs14.x"
-  timeout       = 60
-  memory_size   = 128
+  role        = var.lambda_role_arn
+  handler     = "index.handler"
+  runtime     = "nodejs14.x"
+  timeout     = 60
+  memory_size = 128
 
-  filename      = var.auto_scale_down_zip_path
+  filename = var.auto_scale_down_zip_path
 
   environment {
     variables = {

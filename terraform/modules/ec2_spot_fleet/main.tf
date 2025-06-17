@@ -18,14 +18,14 @@ resource "aws_spot_fleet_request" "processing_fleet" {
   dynamic "launch_specification" {
     for_each = var.instance_types
     content {
-      instance_type               = launch_specification.value
-      ami                         = var.ami_id
-      subnet_id                   = element(var.subnet_ids, launch_specification.key % length(var.subnet_ids))
-      vpc_security_group_ids      = var.security_group_ids
-      iam_instance_profile        = var.instance_profile_name
-      key_name                    = var.key_name
-      weighted_capacity           = lookup(var.instance_weights, launch_specification.value, 1)
-      availability_zone           = element(var.availability_zones, launch_specification.key % length(var.availability_zones))
+      instance_type          = launch_specification.value
+      ami                    = var.ami_id
+      subnet_id              = element(var.subnet_ids, launch_specification.key % length(var.subnet_ids))
+      vpc_security_group_ids = var.security_group_ids
+      iam_instance_profile   = var.instance_profile_name
+      key_name               = var.key_name
+      weighted_capacity      = lookup(var.instance_weights, launch_specification.value, 1)
+      availability_zone      = element(var.availability_zones, launch_specification.key % length(var.availability_zones))
 
       root_block_device {
         volume_size           = var.root_volume_size
@@ -55,7 +55,7 @@ resource "aws_spot_fleet_request" "processing_fleet" {
       tags = merge(
         var.tags,
         {
-          Name = "${var.name_prefix}-spot-instance-${launch_specification.key}"
+          Name         = "${var.name_prefix}-spot-instance-${launch_specification.key}"
           SpotInstance = "true"
         }
       )
@@ -201,21 +201,21 @@ resource "aws_lambda_function" "spot_interruption_handler" {
   function_name = "${var.name_prefix}-spot-interruption-handler"
   description   = "Handles EC2 Spot Instance interruption notifications"
 
-  role          = var.lambda_role_arn
-  handler       = "index.handler"
-  runtime       = "nodejs14.x"
-  timeout       = 60
-  memory_size   = 128
+  role        = var.lambda_role_arn
+  handler     = "index.handler"
+  runtime     = "nodejs14.x"
+  timeout     = 60
+  memory_size = 128
 
-  filename      = var.interruption_handler_zip_path
+  filename = var.interruption_handler_zip_path
 
   environment {
     variables = {
-      FLEET_ID = aws_spot_fleet_request.processing_fleet.id
-      REGION   = var.region
-      S3_BUCKET_NAME = var.s3_bucket_name
+      FLEET_ID        = aws_spot_fleet_request.processing_fleet.id
+      REGION          = var.region
+      S3_BUCKET_NAME  = var.s3_bucket_name
       TARGET_CAPACITY = tostring(var.target_capacity)
-      JOBS_TABLE = var.jobs_table_name
+      JOBS_TABLE      = var.jobs_table_name
     }
   }
 

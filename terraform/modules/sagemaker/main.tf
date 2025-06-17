@@ -87,14 +87,14 @@ resource "aws_cloudwatch_metric_alarm" "sagemaker_invocation_errors" {
   statistic           = "Sum"
   threshold           = var.error_threshold
   alarm_description   = "This alarm monitors SageMaker endpoint invocation errors"
-  
+
   dimensions = {
     EndpointName = each.value
   }
 
   alarm_actions = var.alarm_actions
   ok_actions    = var.ok_actions
-  
+
   tags = var.tags
 }
 

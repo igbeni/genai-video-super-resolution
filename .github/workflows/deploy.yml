@@ -54,9 +54,11 @@ jobs:
       with:
         terraform_version: 1.0.0
 
-    - name: Terraform Format
+    - name: Format Terraform Files
+      run: ./terraform/format_terraform.sh
+
+    - name: Terraform Format Check
       run: terraform fmt -check -recursive
-      working-directory: ./terraform
 
     - name: Terraform Init
       run: terraform init

@@ -7,7 +7,7 @@ resource "aws_vpc_endpoint" "s3" {
   service_name      = "com.amazonaws.${var.region}.s3"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = var.route_table_ids
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -32,7 +32,7 @@ resource "aws_vpc_endpoint" "s3" {
       }
     ]
   })
-  
+
   tags = merge(
     var.tags,
     {
@@ -47,7 +47,7 @@ resource "aws_vpc_endpoint" "dynamodb" {
   service_name      = "com.amazonaws.${var.region}.dynamodb"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = var.route_table_ids
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -67,7 +67,7 @@ resource "aws_vpc_endpoint" "dynamodb" {
       }
     ]
   })
-  
+
   tags = merge(
     var.tags,
     {
@@ -84,7 +84,7 @@ resource "aws_vpc_endpoint" "logs" {
   subnet_ids          = var.subnet_ids
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
-  
+
   tags = merge(
     var.tags,
     {
@@ -101,7 +101,7 @@ resource "aws_vpc_endpoint" "monitoring" {
   subnet_ids          = var.subnet_ids
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
-  
+
   tags = merge(
     var.tags,
     {
@@ -118,7 +118,7 @@ resource "aws_vpc_endpoint" "sns" {
   subnet_ids          = var.subnet_ids
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
-  
+
   tags = merge(
     var.tags,
     {
@@ -135,7 +135,7 @@ resource "aws_vpc_endpoint" "sqs" {
   subnet_ids          = var.subnet_ids
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
-  
+
   tags = merge(
     var.tags,
     {
@@ -149,7 +149,7 @@ resource "aws_security_group" "vpc_endpoints" {
   name        = "${var.name_prefix}-vpc-endpoints-sg"
   description = "Security group for VPC endpoints"
   vpc_id      = var.vpc_id
-  
+
   ingress {
     from_port   = 443
     to_port     = 443
@@ -157,7 +157,7 @@ resource "aws_security_group" "vpc_endpoints" {
     cidr_blocks = [var.vpc_cidr_block]
     description = "HTTPS from VPC"
   }
-  
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -165,7 +165,7 @@ resource "aws_security_group" "vpc_endpoints" {
     cidr_blocks = ["0.0.0.0/0"]
     description = "Allow all outbound traffic"
   }
-  
+
   tags = merge(
     var.tags,
     {

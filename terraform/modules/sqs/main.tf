@@ -7,22 +7,22 @@
 
 # SQS Queue for Frame Extraction Jobs
 resource "aws_sqs_queue" "frame_extraction_queue" {
-  name                      = var.frame_extraction_queue_name
-  delay_seconds             = var.delay_seconds
-  max_message_size          = var.max_message_size
-  message_retention_seconds = var.message_retention_seconds
-  receive_wait_time_seconds = var.receive_wait_time_seconds
+  name                       = var.frame_extraction_queue_name
+  delay_seconds              = var.delay_seconds
+  max_message_size           = var.max_message_size
+  message_retention_seconds  = var.message_retention_seconds
+  receive_wait_time_seconds  = var.receive_wait_time_seconds
   visibility_timeout_seconds = var.visibility_timeout_seconds
-  
+
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.frame_extraction_dlq.arn
     maxReceiveCount     = var.max_receive_count
   })
-  
+
   tags = merge(
     var.tags,
     {
-      Name = "Frame Extraction Queue"
+      Name        = "Frame Extraction Queue"
       Description = "Queue for frame extraction jobs"
     }
   )
@@ -32,11 +32,11 @@ resource "aws_sqs_queue" "frame_extraction_queue" {
 resource "aws_sqs_queue" "frame_extraction_dlq" {
   name                      = "${var.frame_extraction_queue_name}-dlq"
   message_retention_seconds = var.dlq_message_retention_seconds
-  
+
   tags = merge(
     var.tags,
     {
-      Name = "Frame Extraction DLQ"
+      Name        = "Frame Extraction DLQ"
       Description = "Dead letter queue for frame extraction jobs"
     }
   )
@@ -44,22 +44,22 @@ resource "aws_sqs_queue" "frame_extraction_dlq" {
 
 # SQS Queue for Frame Processing Jobs
 resource "aws_sqs_queue" "frame_processing_queue" {
-  name                      = var.frame_processing_queue_name
-  delay_seconds             = var.delay_seconds
-  max_message_size          = var.max_message_size
-  message_retention_seconds = var.message_retention_seconds
-  receive_wait_time_seconds = var.receive_wait_time_seconds
+  name                       = var.frame_processing_queue_name
+  delay_seconds              = var.delay_seconds
+  max_message_size           = var.max_message_size
+  message_retention_seconds  = var.message_retention_seconds
+  receive_wait_time_seconds  = var.receive_wait_time_seconds
   visibility_timeout_seconds = var.visibility_timeout_seconds
-  
+
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.frame_processing_dlq.arn
     maxReceiveCount     = var.max_receive_count
   })
-  
+
   tags = merge(
     var.tags,
     {
-      Name = "Frame Processing Queue"
+      Name        = "Frame Processing Queue"
       Description = "Queue for frame processing jobs"
     }
   )
@@ -69,11 +69,11 @@ resource "aws_sqs_queue" "frame_processing_queue" {
 resource "aws_sqs_queue" "frame_processing_dlq" {
   name                      = "${var.frame_processing_queue_name}-dlq"
   message_retention_seconds = var.dlq_message_retention_seconds
-  
+
   tags = merge(
     var.tags,
     {
-      Name = "Frame Processing DLQ"
+      Name        = "Frame Processing DLQ"
       Description = "Dead letter queue for frame processing jobs"
     }
   )
@@ -81,22 +81,22 @@ resource "aws_sqs_queue" "frame_processing_dlq" {
 
 # SQS Queue for Video Recomposition Jobs
 resource "aws_sqs_queue" "video_recomposition_queue" {
-  name                      = var.video_recomposition_queue_name
-  delay_seconds             = var.delay_seconds
-  max_message_size          = var.max_message_size
-  message_retention_seconds = var.message_retention_seconds
-  receive_wait_time_seconds = var.receive_wait_time_seconds
+  name                       = var.video_recomposition_queue_name
+  delay_seconds              = var.delay_seconds
+  max_message_size           = var.max_message_size
+  message_retention_seconds  = var.message_retention_seconds
+  receive_wait_time_seconds  = var.receive_wait_time_seconds
   visibility_timeout_seconds = var.visibility_timeout_seconds
-  
+
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.video_recomposition_dlq.arn
     maxReceiveCount     = var.max_receive_count
   })
-  
+
   tags = merge(
     var.tags,
     {
-      Name = "Video Recomposition Queue"
+      Name        = "Video Recomposition Queue"
       Description = "Queue for video recomposition jobs"
     }
   )
@@ -106,11 +106,11 @@ resource "aws_sqs_queue" "video_recomposition_queue" {
 resource "aws_sqs_queue" "video_recomposition_dlq" {
   name                      = "${var.video_recomposition_queue_name}-dlq"
   message_retention_seconds = var.dlq_message_retention_seconds
-  
+
   tags = merge(
     var.tags,
     {
-      Name = "Video Recomposition DLQ"
+      Name        = "Video Recomposition DLQ"
       Description = "Dead letter queue for video recomposition jobs"
     }
   )
@@ -118,22 +118,22 @@ resource "aws_sqs_queue" "video_recomposition_dlq" {
 
 # SQS Queue for Completion Notification Jobs
 resource "aws_sqs_queue" "completion_notification_queue" {
-  name                      = var.completion_notification_queue_name
-  delay_seconds             = var.delay_seconds
-  max_message_size          = var.max_message_size
-  message_retention_seconds = var.message_retention_seconds
-  receive_wait_time_seconds = var.receive_wait_time_seconds
+  name                       = var.completion_notification_queue_name
+  delay_seconds              = var.delay_seconds
+  max_message_size           = var.max_message_size
+  message_retention_seconds  = var.message_retention_seconds
+  receive_wait_time_seconds  = var.receive_wait_time_seconds
   visibility_timeout_seconds = var.visibility_timeout_seconds
-  
+
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.completion_notification_dlq.arn
     maxReceiveCount     = var.max_receive_count
   })
-  
+
   tags = merge(
     var.tags,
     {
-      Name = "Completion Notification Queue"
+      Name        = "Completion Notification Queue"
       Description = "Queue for completion notification jobs"
     }
   )
@@ -143,11 +143,11 @@ resource "aws_sqs_queue" "completion_notification_queue" {
 resource "aws_sqs_queue" "completion_notification_dlq" {
   name                      = "${var.completion_notification_queue_name}-dlq"
   message_retention_seconds = var.dlq_message_retention_seconds
-  
+
   tags = merge(
     var.tags,
     {
-      Name = "Completion Notification DLQ"
+      Name        = "Completion Notification DLQ"
       Description = "Dead letter queue for completion notification jobs"
     }
   )
@@ -181,7 +181,7 @@ resource "aws_sns_topic_subscription" "completion_notification_subscription" {
 # SQS Queue Policy to allow SNS to send messages
 resource "aws_sqs_queue_policy" "frame_extraction_queue_policy" {
   queue_url = aws_sqs_queue.frame_extraction_queue.id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -190,7 +190,7 @@ resource "aws_sqs_queue_policy" "frame_extraction_queue_policy" {
         Principal = {
           Service = "sns.amazonaws.com"
         }
-        Action = "sqs:SendMessage"
+        Action   = "sqs:SendMessage"
         Resource = aws_sqs_queue.frame_extraction_queue.arn
         Condition = {
           ArnEquals = {
@@ -204,7 +204,7 @@ resource "aws_sqs_queue_policy" "frame_extraction_queue_policy" {
 
 resource "aws_sqs_queue_policy" "frame_processing_queue_policy" {
   queue_url = aws_sqs_queue.frame_processing_queue.id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -213,7 +213,7 @@ resource "aws_sqs_queue_policy" "frame_processing_queue_policy" {
         Principal = {
           Service = "sns.amazonaws.com"
         }
-        Action = "sqs:SendMessage"
+        Action   = "sqs:SendMessage"
         Resource = aws_sqs_queue.frame_processing_queue.arn
         Condition = {
           ArnEquals = {
@@ -227,7 +227,7 @@ resource "aws_sqs_queue_policy" "frame_processing_queue_policy" {
 
 resource "aws_sqs_queue_policy" "video_recomposition_queue_policy" {
   queue_url = aws_sqs_queue.video_recomposition_queue.id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -236,7 +236,7 @@ resource "aws_sqs_queue_policy" "video_recomposition_queue_policy" {
         Principal = {
           Service = "sns.amazonaws.com"
         }
-        Action = "sqs:SendMessage"
+        Action   = "sqs:SendMessage"
         Resource = aws_sqs_queue.video_recomposition_queue.arn
         Condition = {
           ArnEquals = {
@@ -250,7 +250,7 @@ resource "aws_sqs_queue_policy" "video_recomposition_queue_policy" {
 
 resource "aws_sqs_queue_policy" "completion_notification_queue_policy" {
   queue_url = aws_sqs_queue.completion_notification_queue.id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -259,7 +259,7 @@ resource "aws_sqs_queue_policy" "completion_notification_queue_policy" {
         Principal = {
           Service = "sns.amazonaws.com"
         }
-        Action = "sqs:SendMessage"
+        Action   = "sqs:SendMessage"
         Resource = aws_sqs_queue.completion_notification_queue.arn
         Condition = {
           ArnEquals = {

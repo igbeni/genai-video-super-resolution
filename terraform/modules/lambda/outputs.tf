@@ -105,10 +105,10 @@ output "all_function_arns" {
 output "all_topic_arns" {
   description = "Map of all SNS topic ARNs"
   value = {
-    extract_frames      = aws_sns_topic.extract_frames_topic.arn
-    processing          = aws_sns_topic.processing_topic.arn
-    recomposition       = aws_sns_topic.recomposition_topic.arn
-    notification        = aws_sns_topic.notification_topic.arn
-    email_notification  = aws_sns_topic.email_notification_topic.arn
+    extract_frames     = aws_sns_topic.extract_frames_topic.arn
+    processing         = aws_sns_topic.processing_topic.arn
+    recomposition      = aws_sns_topic.recomposition_topic.arn
+    notification       = aws_sns_topic.notification_topic.arn
+    email_notification = aws_sns_topic.email_notification_topic.arn
   }
 }

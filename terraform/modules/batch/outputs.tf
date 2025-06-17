@@ -108,16 +108,16 @@ output "job_failures_alarm_arn" {
 output "all_resources" {
   description = "Map of all resources created by this module"
   value = {
-    spot_compute_environment_arn      = aws_batch_compute_environment.spot.arn
-    ondemand_compute_environment_arn  = aws_batch_compute_environment.ondemand.arn
-    spot_job_queue_arn                = aws_batch_job_queue.spot.arn
-    ondemand_job_queue_arn            = aws_batch_job_queue.ondemand.arn
-    hybrid_job_queue_arn              = aws_batch_job_queue.hybrid.arn
-    frame_extraction_job_definition_arn = aws_batch_job_definition.frame_extraction.arn
-    frame_processing_job_definition_arn = aws_batch_job_definition.frame_processing.arn
+    spot_compute_environment_arn           = aws_batch_compute_environment.spot.arn
+    ondemand_compute_environment_arn       = aws_batch_compute_environment.ondemand.arn
+    spot_job_queue_arn                     = aws_batch_job_queue.spot.arn
+    ondemand_job_queue_arn                 = aws_batch_job_queue.ondemand.arn
+    hybrid_job_queue_arn                   = aws_batch_job_queue.hybrid.arn
+    frame_extraction_job_definition_arn    = aws_batch_job_definition.frame_extraction.arn
+    frame_processing_job_definition_arn    = aws_batch_job_definition.frame_processing.arn
     video_recomposition_job_definition_arn = aws_batch_job_definition.video_recomposition.arn
-    cloudwatch_log_group_arn          = aws_cloudwatch_log_group.batch_logs.arn
-    cloudwatch_dashboard_name         = aws_cloudwatch_dashboard.batch_dashboard.dashboard_name
-    job_failures_alarm_arn            = aws_cloudwatch_metric_alarm.job_failures.arn
+    cloudwatch_log_group_arn               = aws_cloudwatch_log_group.batch_logs.arn
+    cloudwatch_dashboard_name              = aws_cloudwatch_dashboard.batch_dashboard.dashboard_name
+    job_failures_alarm_arn                 = aws_cloudwatch_metric_alarm.job_failures.arn
   }
 }

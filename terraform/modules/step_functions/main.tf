@@ -15,40 +15,40 @@ resource "aws_sfn_state_machine" "video_processing_workflow" {
         Next     = "WaitForFrameExtraction"
       },
       "WaitForFrameExtraction" = {
-        Type     = "Wait",
-        Seconds  = 10,
-        Next     = "CheckFrameExtractionStatus"
+        Type    = "Wait",
+        Seconds = 10,
+        Next    = "CheckFrameExtractionStatus"
       },
       "CheckFrameExtractionStatus" = {
         Type     = "Task",
         Resource = var.check_status_function_arn != null ? var.check_status_function_arn : var.frame_extraction_function_arn,
         Parameters = {
-          "stage.$" = "$.stage",
+          "stage.$"  = "$.stage",
           "taskId.$" = "$.taskId"
         },
         ResultPath = "$.extractionResult",
         Next       = "IsFrameExtractionComplete"
       },
       "IsFrameExtractionComplete" = {
-        Type        = "Choice",
-        Choices     = [
+        Type = "Choice",
+        Choices = [
           {
-            Variable    = "$.extractionResult.status",
+            Variable     = "$.extractionResult.status",
             StringEquals = "COMPLETED",
-            Next        = "TriggerFrameProcessing"
+            Next         = "TriggerFrameProcessing"
           },
           {
-            Variable    = "$.extractionResult.status",
+            Variable     = "$.extractionResult.status",
             StringEquals = "FAILED",
-            Next        = "FrameExtractionFailed"
+            Next         = "FrameExtractionFailed"
           }
         ],
-        Default     = "WaitForFrameExtraction"
+        Default = "WaitForFrameExtraction"
       },
       "FrameExtractionFailed" = {
-        Type     = "Fail",
-        Error    = "FrameExtractionFailed",
-        Cause    = "Frame extraction process failed"
+        Type  = "Fail",
+        Error = "FrameExtractionFailed",
+        Cause = "Frame extraction process failed"
       },
       "TriggerFrameProcessing" = {
         Type     = "Task",
@@ -56,40 +56,40 @@ resource "aws_sfn_state_machine" "video_processing_workflow" {
         Next     = "WaitForFrameProcessing"
       },
       "WaitForFrameProcessing" = {
-        Type     = "Wait",
-        Seconds  = 30,
-        Next     = "CheckFrameProcessingStatus"
+        Type    = "Wait",
+        Seconds = 30,
+        Next    = "CheckFrameProcessingStatus"
       },
       "CheckFrameProcessingStatus" = {
         Type     = "Task",
         Resource = var.check_status_function_arn != null ? var.check_status_function_arn : var.frame_extraction_function_arn,
         Parameters = {
-          "stage.$" = "$.stage",
+          "stage.$"  = "$.stage",
           "taskId.$" = "$.taskId"
         },
         ResultPath = "$.processingResult",
         Next       = "IsFrameProcessingComplete"
       },
       "IsFrameProcessingComplete" = {
-        Type        = "Choice",
-        Choices     = [
+        Type = "Choice",
+        Choices = [
           {
-            Variable    = "$.processingResult.status",
+            Variable     = "$.processingResult.status",
             StringEquals = "COMPLETED",
-            Next        = "TriggerVideoRecomposition"
+            Next         = "TriggerVideoRecomposition"
           },
           {
-            Variable    = "$.processingResult.status",
+            Variable     = "$.processingResult.status",
             StringEquals = "FAILED",
-            Next        = "FrameProcessingFailed"
+            Next         = "FrameProcessingFailed"
           }
         ],
-        Default     = "WaitForFrameProcessing"
+        Default = "WaitForFrameProcessing"
       },
       "FrameProcessingFailed" = {
-        Type     = "Fail",
-        Error    = "FrameProcessingFailed",
-        Cause    = "Frame processing failed"
+        Type  = "Fail",
+        Error = "FrameProcessingFailed",
+        Cause = "Frame processing failed"
       },
       "TriggerVideoRecomposition" = {
         Type     = "Task",
@@ -97,40 +97,40 @@ resource "aws_sfn_state_machine" "video_processing_workflow" {
         Next     = "WaitForVideoRecomposition"
       },
       "WaitForVideoRecomposition" = {
-        Type     = "Wait",
-        Seconds  = 20,
-        Next     = "CheckVideoRecompositionStatus"
+        Type    = "Wait",
+        Seconds = 20,
+        Next    = "CheckVideoRecompositionStatus"
       },
       "CheckVideoRecompositionStatus" = {
         Type     = "Task",
         Resource = var.check_status_function_arn != null ? var.check_status_function_arn : var.frame_extraction_function_arn,
         Parameters = {
-          "stage.$" = "$.stage",
+          "stage.$"  = "$.stage",
           "taskId.$" = "$.taskId"
         },
         ResultPath = "$.recompositionResult",
         Next       = "IsVideoRecompositionComplete"
       },
       "IsVideoRecompositionComplete" = {
-        Type        = "Choice",
-        Choices     = [
+        Type = "Choice",
+        Choices = [
           {
-            Variable    = "$.recompositionResult.status",
+            Variable     = "$.recompositionResult.status",
             StringEquals = "COMPLETED",
-            Next        = "SendCompletionNotification"
+            Next         = "SendCompletionNotification"
           },
           {
-            Variable    = "$.recompositionResult.status",
+            Variable     = "$.recompositionResult.status",
             StringEquals = "FAILED",
-            Next        = "VideoRecompositionFailed"
+            Next         = "VideoRecompositionFailed"
           }
         ],
-        Default     = "WaitForVideoRecomposition"
+        Default = "WaitForVideoRecomposition"
       },
       "VideoRecompositionFailed" = {
-        Type     = "Fail",
-        Error    = "VideoRecompositionFailed",
-        Cause    = "Video recomposition failed"
+        Type  = "Fail",
+        Error = "VideoRecompositionFailed",
+        Cause = "Video recomposition failed"
       },
       "SendCompletionNotification" = {
         Type     = "Task",
@@ -208,7 +208,7 @@ resource "aws_iam_policy" "step_functions_policy" {
           "logs:DescribeResourcePolicies",
           "logs:DescribeLogGroups"
         ],
-        Effect = "Allow",
+        Effect   = "Allow",
         Resource = "*"
       }
     ]

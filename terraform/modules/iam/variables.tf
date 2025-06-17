@@ -51,7 +51,7 @@ variable "final_videos_bucket_arn" {
 variable "dynamodb_table_arn" {
   description = "ARN of the DynamoDB table for job metadata"
   type        = string
-  default     = ""  # Will be created in a future task
+  default     = "" # Will be created in a future task
 }
 
 # Tags

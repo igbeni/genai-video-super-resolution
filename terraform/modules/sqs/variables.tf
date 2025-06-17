@@ -33,13 +33,13 @@ variable "delay_seconds" {
 variable "max_message_size" {
   description = "The limit of how many bytes a message can contain before Amazon SQS rejects it"
   type        = number
-  default     = 262144  # 256 KiB
+  default     = 262144 # 256 KiB
 }
 
 variable "message_retention_seconds" {
   description = "The number of seconds Amazon SQS retains a message"
   type        = number
-  default     = 345600  # 4 days
+  default     = 345600 # 4 days
 }
 
 variable "receive_wait_time_seconds" {
@@ -63,7 +63,7 @@ variable "max_receive_count" {
 variable "dlq_message_retention_seconds" {
   description = "The number of seconds Amazon SQS retains a message in the dead-letter queue"
   type        = number
-  default     = 1209600  # 14 days
+  default     = 1209600 # 14 days
 }
 
 variable "extract_frames_topic_arn" {

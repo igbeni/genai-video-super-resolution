@@ -12,7 +12,7 @@ resource "aws_s3_bucket" "access_logs" {
   tags = merge(
     var.tags,
     {
-      Name = "Access Logs Bucket"
+      Name        = "Access Logs Bucket"
       Description = "Stores access logs for all S3 buckets in the pipeline"
     }
   )
@@ -73,7 +73,7 @@ resource "aws_s3_bucket" "source_videos" {
   tags = merge(
     var.tags,
     {
-      Name = "Source Videos Bucket"
+      Name        = "Source Videos Bucket"
       Description = "Stores original source videos for super-resolution processing"
     }
   )
@@ -85,7 +85,7 @@ resource "aws_s3_bucket" "processed_frames" {
   tags = merge(
     var.tags,
     {
-      Name = "Processed Frames Bucket"
+      Name        = "Processed Frames Bucket"
       Description = "Stores extracted and processed frames during super-resolution"
     }
   )
@@ -97,7 +97,7 @@ resource "aws_s3_bucket" "final_videos" {
   tags = merge(
     var.tags,
     {
-      Name = "Final Videos Bucket"
+      Name        = "Final Videos Bucket"
       Description = "Stores final super-resolution videos after processing"
     }
   )
@@ -251,14 +251,14 @@ resource "aws_s3_bucket_lifecycle_configuration" "processed_frames_lifecycle" {
     dynamic "transition" {
       for_each = var.enable_standard_ia_transition ? [1] : []
       content {
-        days          = var.standard_ia_transition_days / 2  # Faster transition for frames
+        days          = var.standard_ia_transition_days / 2 # Faster transition for frames
         storage_class = "STANDARD_IA"
       }
     }
 
     # Final expiration
     expiration {
-      days = var.intermediate_files_expiration_days / 2  # Faster expiration for frames
+      days = var.intermediate_files_expiration_days / 2 # Faster expiration for frames
     }
 
     # Apply to frames directory
@@ -274,7 +274,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "processed_frames_lifecycle" {
 
     # Quick expiration for temporary files
     expiration {
-      days = 1  # Delete temp files after 1 day
+      days = 1 # Delete temp files after 1 day
     }
 
     # Apply to temp directory

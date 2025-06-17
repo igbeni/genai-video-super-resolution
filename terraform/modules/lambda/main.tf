@@ -11,13 +11,13 @@ resource "aws_lambda_function" "pipeline_trigger" {
   function_name = var.pipeline_trigger_function_name
   description   = "Triggers the video super-resolution pipeline when a new video is uploaded"
 
-  role          = var.lambda_role_arn
-  handler       = "pipeline_trigger.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
+  role        = var.lambda_role_arn
+  handler     = "pipeline_trigger.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout
+  memory_size = var.lambda_memory_size
 
-  filename      = var.pipeline_trigger_zip_path
+  filename         = var.pipeline_trigger_zip_path
   source_code_hash = filebase64sha256(var.pipeline_trigger_zip_path)
 
   environment {
@@ -65,23 +65,23 @@ resource "aws_lambda_function" "frame_extraction" {
   function_name = var.frame_extraction_function_name
   description   = "Creates and monitors frame extraction jobs"
 
-  role          = var.lambda_role_arn
-  handler       = "frame_extraction.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
+  role        = var.lambda_role_arn
+  handler     = "frame_extraction.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout
+  memory_size = var.lambda_memory_size
 
-  filename      = var.frame_extraction_zip_path
+  filename         = var.frame_extraction_zip_path
   source_code_hash = filebase64sha256(var.frame_extraction_zip_path)
 
   environment {
     variables = {
-      SOURCE_BUCKET      = var.source_bucket_name
-      PROCESSED_BUCKET   = var.processed_frames_bucket_name
-      DYNAMODB_TABLE     = var.dynamodb_table_name
-      BATCH_JOB_QUEUE    = var.batch_job_queue
+      SOURCE_BUCKET        = var.source_bucket_name
+      PROCESSED_BUCKET     = var.processed_frames_bucket_name
+      DYNAMODB_TABLE       = var.dynamodb_table_name
+      BATCH_JOB_QUEUE      = var.batch_job_queue
       BATCH_JOB_DEFINITION = var.batch_job_definition
-      PROCESSING_SNS     = aws_sns_topic.processing_topic.arn
+      PROCESSING_SNS       = aws_sns_topic.processing_topic.arn
     }
   }
 
@@ -115,22 +115,22 @@ resource "aws_lambda_function" "frame_processing" {
   function_name = var.frame_processing_function_name
   description   = "Creates and monitors frame processing jobs"
 
-  role          = var.lambda_role_arn
-  handler       = "frame_processing.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
+  role        = var.lambda_role_arn
+  handler     = "frame_processing.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout
+  memory_size = var.lambda_memory_size
 
-  filename      = var.frame_processing_zip_path
+  filename         = var.frame_processing_zip_path
   source_code_hash = filebase64sha256(var.frame_processing_zip_path)
 
   environment {
     variables = {
-      PROCESSED_BUCKET   = var.processed_frames_bucket_name
-      DYNAMODB_TABLE     = var.dynamodb_table_name
-      BATCH_JOB_QUEUE    = var.batch_job_queue
+      PROCESSED_BUCKET     = var.processed_frames_bucket_name
+      DYNAMODB_TABLE       = var.dynamodb_table_name
+      BATCH_JOB_QUEUE      = var.batch_job_queue
       BATCH_JOB_DEFINITION = var.batch_job_definition
-      RECOMPOSITION_SNS  = aws_sns_topic.recomposition_topic.arn
+      RECOMPOSITION_SNS    = aws_sns_topic.recomposition_topic.arn
     }
   }
 
@@ -164,23 +164,23 @@ resource "aws_lambda_function" "video_recomposition" {
   function_name = var.video_recomposition_function_name
   description   = "Creates and monitors video recomposition jobs"
 
-  role          = var.lambda_role_arn
-  handler       = "video_recomposition.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
+  role        = var.lambda_role_arn
+  handler     = "video_recomposition.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout
+  memory_size = var.lambda_memory_size
 
-  filename      = var.video_recomposition_zip_path
+  filename         = var.video_recomposition_zip_path
   source_code_hash = filebase64sha256(var.video_recomposition_zip_path)
 
   environment {
     variables = {
-      PROCESSED_BUCKET   = var.processed_frames_bucket_name
-      FINAL_BUCKET       = var.final_videos_bucket_name
-      DYNAMODB_TABLE     = var.dynamodb_table_name
-      BATCH_JOB_QUEUE    = var.batch_job_queue
+      PROCESSED_BUCKET     = var.processed_frames_bucket_name
+      FINAL_BUCKET         = var.final_videos_bucket_name
+      DYNAMODB_TABLE       = var.dynamodb_table_name
+      BATCH_JOB_QUEUE      = var.batch_job_queue
       BATCH_JOB_DEFINITION = var.batch_job_definition
-      NOTIFICATION_SNS   = aws_sns_topic.notification_topic.arn
+      NOTIFICATION_SNS     = aws_sns_topic.notification_topic.arn
     }
   }
 
@@ -214,20 +214,20 @@ resource "aws_lambda_function" "completion_notification" {
   function_name = var.completion_notification_function_name
   description   = "Sends notifications when video processing is complete"
 
-  role          = var.lambda_role_arn
-  handler       = "completion_notification.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
+  role        = var.lambda_role_arn
+  handler     = "completion_notification.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout
+  memory_size = var.lambda_memory_size
 
-  filename      = var.completion_notification_zip_path
+  filename         = var.completion_notification_zip_path
   source_code_hash = filebase64sha256(var.completion_notification_zip_path)
 
   environment {
     variables = {
-      FINAL_BUCKET       = var.final_videos_bucket_name
-      DYNAMODB_TABLE     = var.dynamodb_table_name
-      EMAIL_SNS_TOPIC    = aws_sns_topic.email_notification_topic.arn
+      FINAL_BUCKET    = var.final_videos_bucket_name
+      DYNAMODB_TABLE  = var.dynamodb_table_name
+      EMAIL_SNS_TOPIC = aws_sns_topic.email_notification_topic.arn
     }
   }
 
@@ -269,19 +269,19 @@ resource "aws_lambda_function" "presigned_url_generator" {
   function_name = var.presigned_url_generator_function_name
   description   = "Generates presigned S3 URLs for secure file uploads"
 
-  role          = var.lambda_role_arn
-  handler       = "presigned_url_generator.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
+  role        = var.lambda_role_arn
+  handler     = "presigned_url_generator.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout
+  memory_size = var.lambda_memory_size
 
-  filename      = var.presigned_url_generator_zip_path
+  filename         = var.presigned_url_generator_zip_path
   source_code_hash = filebase64sha256(var.presigned_url_generator_zip_path)
 
   environment {
     variables = {
-      SOURCE_BUCKET   = var.source_bucket_name
-      URL_EXPIRATION  = "900"  # Default to 15 minutes for security
+      SOURCE_BUCKET  = var.source_bucket_name
+      URL_EXPIRATION = "900" # Default to 15 minutes for security
     }
   }
 
@@ -301,20 +301,20 @@ resource "aws_lambda_function" "intermediate_file_cleanup" {
   function_name = var.intermediate_file_cleanup_function_name
   description   = "Cleans up intermediate files in the processed frames bucket after a job is completed"
 
-  role          = var.lambda_role_arn
-  handler       = "intermediate_file_cleanup.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout * 2  # Double timeout for cleanup operations
-  memory_size   = var.lambda_memory_size
+  role        = var.lambda_role_arn
+  handler     = "intermediate_file_cleanup.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout * 2 # Double timeout for cleanup operations
+  memory_size = var.lambda_memory_size
 
-  filename      = var.intermediate_file_cleanup_zip_path
+  filename         = var.intermediate_file_cleanup_zip_path
   source_code_hash = filebase64sha256(var.intermediate_file_cleanup_zip_path)
 
   environment {
     variables = {
-      PROCESSED_BUCKET   = var.processed_frames_bucket_name
-      DYNAMODB_TABLE     = var.dynamodb_table_name
-      RETENTION_DAYS     = "7"  # Default to 7 days
+      PROCESSED_BUCKET = var.processed_frames_bucket_name
+      DYNAMODB_TABLE   = var.dynamodb_table_name
+      RETENTION_DAYS   = "7" # Default to 7 days
     }
   }
 
@@ -351,21 +351,21 @@ resource "aws_lambda_function" "intermediate_file_compression" {
   function_name = var.intermediate_file_compression_function_name
   description   = "Compresses intermediate files in the processed frames bucket to optimize storage costs"
 
-  role          = var.lambda_role_arn
-  handler       = "intermediate_file_compression.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout * 2  # Double timeout for compression operations
-  memory_size   = var.lambda_memory_size * 2  # Double memory for compression operations
+  role        = var.lambda_role_arn
+  handler     = "intermediate_file_compression.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout * 2     # Double timeout for compression operations
+  memory_size = var.lambda_memory_size * 2 # Double memory for compression operations
 
-  filename      = var.intermediate_file_compression_zip_path
+  filename         = var.intermediate_file_compression_zip_path
   source_code_hash = filebase64sha256(var.intermediate_file_compression_zip_path)
 
   environment {
     variables = {
-      PROCESSED_BUCKET   = var.processed_frames_bucket_name
-      DYNAMODB_TABLE     = var.dynamodb_table_name
-      COMPRESSION_AGE_DAYS = "3"  # Default to 3 days
-      ENABLE_COMPRESSION = "true"
+      PROCESSED_BUCKET     = var.processed_frames_bucket_name
+      DYNAMODB_TABLE       = var.dynamodb_table_name
+      COMPRESSION_AGE_DAYS = "3" # Default to 3 days
+      ENABLE_COMPRESSION   = "true"
     }
   }
 
@@ -402,19 +402,19 @@ resource "aws_lambda_function" "idle_instance_shutdown" {
   function_name = var.idle_instance_shutdown_function_name
   description   = "Monitors EC2 instances and shuts down idle instances"
 
-  role          = var.lambda_role_arn
-  handler       = "idle_instance_shutdown.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
+  role        = var.lambda_role_arn
+  handler     = "idle_instance_shutdown.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout
+  memory_size = var.lambda_memory_size
 
-  filename      = var.idle_instance_shutdown_zip_path
+  filename         = var.idle_instance_shutdown_zip_path
   source_code_hash = filebase64sha256(var.idle_instance_shutdown_zip_path)
 
   environment {
     variables = {
-      IDLE_THRESHOLD_PERCENT = "10.0"  # Default to 10% CPU utilization
-      IDLE_DURATION_MINUTES  = "30"    # Default to 30 minutes
+      IDLE_THRESHOLD_PERCENT = "10.0" # Default to 10% CPU utilization
+      IDLE_DURATION_MINUTES  = "30"   # Default to 30 minutes
       INSTANCE_TAG_KEY       = "Name"
       INSTANCE_TAG_VALUE     = var.name_prefix
     }
@@ -453,19 +453,19 @@ resource "aws_lambda_function" "sagemaker_endpoint_shutdown" {
   function_name = var.sagemaker_endpoint_shutdown_function_name
   description   = "Monitors SageMaker endpoints and shuts down idle endpoints"
 
-  role          = var.lambda_role_arn
-  handler       = "sagemaker_endpoint_shutdown.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
+  role        = var.lambda_role_arn
+  handler     = "sagemaker_endpoint_shutdown.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout
+  memory_size = var.lambda_memory_size
 
-  filename      = var.sagemaker_endpoint_shutdown_zip_path
+  filename         = var.sagemaker_endpoint_shutdown_zip_path
   source_code_hash = filebase64sha256(var.sagemaker_endpoint_shutdown_zip_path)
 
   environment {
     variables = {
-      IDLE_THRESHOLD_INVOCATIONS = "5"     # Default to 5 invocations
-      IDLE_DURATION_MINUTES      = "60"    # Default to 60 minutes
+      IDLE_THRESHOLD_INVOCATIONS = "5"  # Default to 5 invocations
+      IDLE_DURATION_MINUTES      = "60" # Default to 60 minutes
       ENDPOINT_NAME_PREFIX       = var.name_prefix
       DYNAMODB_TABLE             = var.dynamodb_table_name
     }
@@ -504,20 +504,20 @@ resource "aws_lambda_function" "resource_leak_monitor" {
   function_name = var.resource_leak_monitor_function_name
   description   = "Monitors for resource leaks and cleans them up"
 
-  role          = var.lambda_role_arn
-  handler       = "resource_leak_monitor.lambda_handler"
-  runtime       = var.lambda_runtime
-  timeout       = var.lambda_timeout * 2  # Double timeout for cleanup operations
-  memory_size   = var.lambda_memory_size
+  role        = var.lambda_role_arn
+  handler     = "resource_leak_monitor.lambda_handler"
+  runtime     = var.lambda_runtime
+  timeout     = var.lambda_timeout * 2 # Double timeout for cleanup operations
+  memory_size = var.lambda_memory_size
 
-  filename      = var.resource_leak_monitor_zip_path
+  filename         = var.resource_leak_monitor_zip_path
   source_code_hash = filebase64sha256(var.resource_leak_monitor_zip_path)
 
   environment {
     variables = {
-      ORPHANED_VOLUME_AGE_HOURS   = "24"    # Default to 24 hours
-      ORPHANED_SNAPSHOT_AGE_DAYS  = "7"     # Default to 7 days
-      SNS_TOPIC_ARN               = aws_sns_topic.resource_leak_topic.arn
+      ORPHANED_VOLUME_AGE_HOURS  = "24" # Default to 24 hours
+      ORPHANED_SNAPSHOT_AGE_DAYS = "7"  # Default to 7 days
+      SNS_TOPIC_ARN              = aws_sns_topic.resource_leak_topic.arn
     }
   }
 

@@ -38,7 +38,7 @@ variable "final_videos_bucket_name" {
 variable "lambda_function_names" {
   description = "Map of Lambda function names by role"
   type        = map(string)
-  default     = {
+  default = {
     pipeline_trigger        = "video-super-resolution-pipeline-trigger"
     frame_extraction        = "video-super-resolution-frame-extraction"
     frame_processing        = "video-super-resolution-frame-processing"
@@ -51,7 +51,7 @@ variable "lambda_function_names" {
 variable "batch_job_queue_names" {
   description = "Map of AWS Batch job queue names by type"
   type        = map(string)
-  default     = {
+  default = {
     spot     = "video-super-resolution-spot-job-queue"
     ondemand = "video-super-resolution-ondemand-job-queue"
     hybrid   = "video-super-resolution-hybrid-job-queue"
@@ -62,7 +62,7 @@ variable "batch_job_queue_names" {
 variable "ec2_asg_names" {
   description = "Map of EC2 Auto Scaling Group names by type"
   type        = map(string)
-  default     = {
+  default = {
     spot     = "video-super-resolution-spot-fleet"
     ondemand = "video-super-resolution-ondemand-fleet"
   }
@@ -110,7 +110,7 @@ variable "ec2_idle_threshold" {
 variable "idle_evaluation_periods" {
   description = "Number of periods to evaluate for idle instances before triggering alarm"
   type        = number
-  default     = 6  # 30 minutes (6 periods of 5 minutes each)
+  default     = 6 # 30 minutes (6 periods of 5 minutes each)
 }
 
 # Alarm Actions

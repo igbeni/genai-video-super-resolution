@@ -59,7 +59,7 @@ variable "completion_lambda_name" {
 variable "pipeline_lambda_names" {
   description = "List of Lambda function names that are part of the pipeline"
   type        = list(string)
-  default     = [
+  default = [
     "video-super-resolution-pipeline-trigger",
     "video-super-resolution-frame-extraction",
     "video-super-resolution-frame-processing",

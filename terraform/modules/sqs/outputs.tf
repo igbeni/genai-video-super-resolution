@@ -88,13 +88,13 @@ output "completion_notification_dlq_url" {
 output "queue_arns" {
   description = "Map of all queue ARNs"
   value = {
-    frame_extraction       = aws_sqs_queue.frame_extraction_queue.arn
-    frame_extraction_dlq   = aws_sqs_queue.frame_extraction_dlq.arn
-    frame_processing       = aws_sqs_queue.frame_processing_queue.arn
-    frame_processing_dlq   = aws_sqs_queue.frame_processing_dlq.arn
-    video_recomposition    = aws_sqs_queue.video_recomposition_queue.arn
-    video_recomposition_dlq = aws_sqs_queue.video_recomposition_dlq.arn
-    completion_notification = aws_sqs_queue.completion_notification_queue.arn
+    frame_extraction            = aws_sqs_queue.frame_extraction_queue.arn
+    frame_extraction_dlq        = aws_sqs_queue.frame_extraction_dlq.arn
+    frame_processing            = aws_sqs_queue.frame_processing_queue.arn
+    frame_processing_dlq        = aws_sqs_queue.frame_processing_dlq.arn
+    video_recomposition         = aws_sqs_queue.video_recomposition_queue.arn
+    video_recomposition_dlq     = aws_sqs_queue.video_recomposition_dlq.arn
+    completion_notification     = aws_sqs_queue.completion_notification_queue.arn
     completion_notification_dlq = aws_sqs_queue.completion_notification_dlq.arn
   }
 }
@@ -102,13 +102,13 @@ output "queue_arns" {
 output "queue_urls" {
   description = "Map of all queue URLs"
   value = {
-    frame_extraction       = aws_sqs_queue.frame_extraction_queue.id
-    frame_extraction_dlq   = aws_sqs_queue.frame_extraction_dlq.id
-    frame_processing       = aws_sqs_queue.frame_processing_queue.id
-    frame_processing_dlq   = aws_sqs_queue.frame_processing_dlq.id
-    video_recomposition    = aws_sqs_queue.video_recomposition_queue.id
-    video_recomposition_dlq = aws_sqs_queue.video_recomposition_dlq.id
-    completion_notification = aws_sqs_queue.completion_notification_queue.id
+    frame_extraction            = aws_sqs_queue.frame_extraction_queue.id
+    frame_extraction_dlq        = aws_sqs_queue.frame_extraction_dlq.id
+    frame_processing            = aws_sqs_queue.frame_processing_queue.id
+    frame_processing_dlq        = aws_sqs_queue.frame_processing_dlq.id
+    video_recomposition         = aws_sqs_queue.video_recomposition_queue.id
+    video_recomposition_dlq     = aws_sqs_queue.video_recomposition_dlq.id
+    completion_notification     = aws_sqs_queue.completion_notification_queue.id
     completion_notification_dlq = aws_sqs_queue.completion_notification_dlq.id
   }
 }
@@ -117,9 +117,9 @@ output "queue_urls" {
 output "sns_subscription_arns" {
   description = "Map of SNS topic subscription ARNs"
   value = {
-    frame_extraction       = aws_sns_topic_subscription.frame_extraction_subscription.arn
-    frame_processing       = aws_sns_topic_subscription.frame_processing_subscription.arn
-    video_recomposition    = aws_sns_topic_subscription.video_recomposition_subscription.arn
+    frame_extraction        = aws_sns_topic_subscription.frame_extraction_subscription.arn
+    frame_processing        = aws_sns_topic_subscription.frame_processing_subscription.arn
+    video_recomposition     = aws_sns_topic_subscription.video_recomposition_subscription.arn
     completion_notification = aws_sns_topic_subscription.completion_notification_subscription.arn
   }
 }

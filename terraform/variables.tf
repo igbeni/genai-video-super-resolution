@@ -35,6 +35,11 @@ variable "final_videos_bucket_name" {
   default     = "video-super-resolution-final"
 }
 
+variable "access_logs_bucket_name" {
+  description = "Name of the S3 bucket for access logs"
+  type        = string
+  default     = "video-super-resolution-access-logs"
+}
 # S3 Bucket Configuration
 variable "enable_versioning" {
   description = "Enable versioning for S3 buckets"
@@ -243,13 +248,13 @@ variable "sqs_delay_seconds" {
 variable "sqs_max_message_size" {
   description = "The limit of how many bytes a message can contain before Amazon SQS rejects it"
   type        = number
-  default     = 262144  # 256 KiB
+  default     = 262144 # 256 KiB
 }
 
 variable "sqs_message_retention_seconds" {
   description = "The number of seconds Amazon SQS retains a message"
   type        = number
-  default     = 345600  # 4 days
+  default     = 345600 # 4 days
 }
 
 variable "sqs_receive_wait_time_seconds" {
@@ -273,7 +278,7 @@ variable "sqs_max_receive_count" {
 variable "sqs_dlq_message_retention_seconds" {
   description = "The number of seconds Amazon SQS retains a message in the dead-letter queue"
   type        = number
-  default     = 1209600  # 14 days
+  default     = 1209600 # 14 days
 }
 
 # SageMaker Configuration
@@ -287,19 +292,19 @@ variable "sagemaker_role_name" {
 variable "realesrgan_image_uri" {
   description = "URI of the Real-ESRGAN Docker image in ECR"
   type        = string
-  default     = ""  # This should be set in terraform.tfvars
+  default     = "" # This should be set in terraform.tfvars
 }
 
 variable "realesrgan_model_data_url" {
   description = "S3 URL to the Real-ESRGAN model data"
   type        = string
-  default     = null  # If model is included in the container, this can be null
+  default     = null # If model is included in the container, this can be null
 }
 
 variable "realesrgan_instance_type" {
   description = "Instance type for Real-ESRGAN endpoint"
   type        = string
-  default     = "ml.g4dn.xlarge"  # GPU instance suitable for inference
+  default     = "ml.g4dn.xlarge" # GPU instance suitable for inference
 }
 
 variable "realesrgan_instance_count" {
@@ -312,19 +317,19 @@ variable "realesrgan_instance_count" {
 variable "swinir_image_uri" {
   description = "URI of the SwinIR Docker image in ECR"
   type        = string
-  default     = ""  # This should be set in terraform.tfvars
+  default     = "" # This should be set in terraform.tfvars
 }
 
 variable "swinir_model_data_url" {
   description = "S3 URL to the SwinIR model data"
   type        = string
-  default     = null  # If model is included in the container, this can be null
+  default     = null # If model is included in the container, this can be null
 }
 
 variable "swinir_instance_type" {
   description = "Instance type for SwinIR endpoint"
   type        = string
-  default     = "ml.g4dn.xlarge"  # GPU instance suitable for inference
+  default     = "ml.g4dn.xlarge" # GPU instance suitable for inference
 }
 
 variable "swinir_instance_count" {
@@ -349,12 +354,12 @@ variable "sagemaker_max_capacity" {
 variable "sagemaker_target_cpu_utilization" {
   description = "Target CPU utilization for auto-scaling"
   type        = number
-  default     = 75  # 75% CPU utilization
+  default     = 75 # 75% CPU utilization
 }
 
 # SageMaker CloudWatch Alarm Configuration
 variable "sagemaker_error_threshold" {
   description = "Threshold for SageMaker endpoint error alarms"
   type        = number
-  default     = 5  # 5 errors
+  default     = 5 # 5 errors
 }

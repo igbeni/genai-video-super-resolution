@@ -66,7 +66,7 @@ variable "valid_until" {
 variable "instance_types" {
   description = "List of EC2 instance types to launch in the Spot Fleet"
   type        = list(string)
-  default     = [
+  default = [
     # NVIDIA GPU instances - G4dn family
     "g4dn.xlarge", "g4dn.2xlarge", "g4dn.4xlarge", "g4dn.8xlarge",
     # NVIDIA GPU instances - G5 family
@@ -85,20 +85,20 @@ variable "instance_types" {
 variable "instance_weights" {
   description = "Map of instance types to their weights (capacity units)"
   type        = map(number)
-  default     = {
+  default = {
     # NVIDIA GPU instances - G4dn family
     "g4dn.xlarge"  = 1
     "g4dn.2xlarge" = 2
     "g4dn.4xlarge" = 4
     "g4dn.8xlarge" = 8
     # NVIDIA GPU instances - G5 family
-    "g5.xlarge"    = 1
-    "g5.2xlarge"   = 2
-    "g5.4xlarge"   = 4
-    "g5.8xlarge"   = 8
+    "g5.xlarge"  = 1
+    "g5.2xlarge" = 2
+    "g5.4xlarge" = 4
+    "g5.8xlarge" = 8
     # NVIDIA GPU instances - P3 family
-    "p3.2xlarge"   = 4
-    "p3.8xlarge"   = 16
+    "p3.2xlarge" = 4
+    "p3.8xlarge" = 16
     # NVIDIA GPU instances - P4d family
     "p4d.24xlarge" = 24
     # AMD GPU instances - G4ad family
@@ -165,12 +165,12 @@ variable "encrypt_volumes" {
 
 variable "ebs_block_devices" {
   description = "List of additional EBS block devices to attach to the instances"
-  type        = list(object({
+  type = list(object({
     device_name = string
     volume_size = number
     volume_type = string
   }))
-  default     = []
+  default = []
 }
 
 # User Data Configuration
