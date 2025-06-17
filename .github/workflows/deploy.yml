@@ -4,47 +4,47 @@ on:
   workflow_dispatch:
 
 jobs:
-#  test:
-#    runs-on: ubuntu-latest
-#    strategy:
-#      matrix:
-#        python-version: [3.9]
-#
-#    steps:
-#    - uses: actions/checkout@v3
-#
-#    - name: Set up Python ${{ matrix.python-version }}
-#      uses: actions/setup-python@v4
-#      with:
-#        python-version: ${{ matrix.python-version }}
-#
-#    - name: Install dependencies
-#      run: |
-#        python -m pip install --upgrade pip
-#        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-#        if [ -f realesrgan/requirements.txt ]; then pip install -r realesrgan/requirements.txt; fi
-#        if [ -f swinir2/requirements.txt ]; then pip install -r swinir2/requirements.txt; fi
-#        if [ -f ui/requirements.txt ]; then pip install -r ui/requirements.txt; fi
-#        pip install pytest pytest-cov boto3
-#
-#    - name: Run unit tests
-#      run: |
-#        echo "Running unit tests..."
-#        pytest tests/ lambda_functions/tests/ realesrgan/test/ swinir2/test/ --ignore=tests/integration --ignore=tests/benchmarks --cov=. --cov-report=xml
-#
-#    - name: Run integration tests
-#      run: |
-#        echo "Running integration tests..."
-#        pytest tests/integration/ --cov=. --cov-report=xml --cov-append
-#
-#    - name: Upload coverage report
-#      uses: codecov/codecov-action@v1
-#      with:
-#        file: ./coverage.xml
-#        fail_ci_if_error: true
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f realesrgan/requirements.txt ]; then pip install -r realesrgan/requirements.txt; fi
+        if [ -f swinir2/requirements.txt ]; then pip install -r swinir2/requirements.txt; fi
+        if [ -f ui/requirements.txt ]; then pip install -r ui/requirements.txt; fi
+        pip install pytest pytest-cov boto3
+
+    - name: Run unit tests
+      run: |
+        echo "Running unit tests..."
+        pytest tests/ lambda_functions/tests/ realesrgan/test/ swinir2/test/ --ignore=tests/integration --ignore=tests/benchmarks --cov=. --cov-report=xml
+
+    - name: Run integration tests
+      run: |
+        echo "Running integration tests..."
+        pytest tests/integration/ --cov=. --cov-report=xml --cov-append
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true
 
   validate:
-#    needs: test
+    needs: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -55,10 +55,14 @@ jobs:
         terraform_version: 1.0.0
 
     - name: Format Terraform Files
-      run: ./terraform/format_terraform.sh
+      run: |
+        chmod +x ./terraform/format_terraform.sh
+        ./terraform/format_terraform.sh
 
     - name: Terraform Format Check
-      run: terraform fmt -check -recursive
+      run: |
+        cd terraform
+        terraform fmt -check -recursive
 
     - name: Terraform Init
       run: terraform init
