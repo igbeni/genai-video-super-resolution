@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 s3_config = Config(
     region_name=os.environ.get('AWS_REGION', 'us-east-1'),
     retries={'max_attempts': 10, 'mode': 'adaptive'},
-    s3={'use_accelerate': os.environ.get('USE_S3_ACCELERATION', 'False').lower() == 'true'},
+    s3={'use_accelerate_endpoint': os.environ.get('USE_S3_ACCELERATION', 'False').lower() == 'true'},
     max_pool_connections=100,
     tcp_keepalive=True
 )
