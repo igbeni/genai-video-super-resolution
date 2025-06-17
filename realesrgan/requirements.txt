@@ -1,7 +1,10 @@
-opencv-python
-torch
-requests
-timm
-basicsr
-facexlib
-gfpgan
+opencv-python==4.8.0.76
+torch>=2.0.0
+requests>=2.31.0
+timm>=0.9.5
+basicsr>=1.4.2
+facexlib>=0.3.0
+gfpgan>=1.3.8
+boto3>=1.28.0
+pillow>=10.0.0
+numpy>=1.24.0

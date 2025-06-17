@@ -1,0 +1,58 @@
+{
+  "source_bucket": "source-bucket",
+  "processed_bucket": "processed-bucket",
+  "final_bucket": "final-bucket",
+  "test_videos": [
+    {
+      "name": "small_video.mp4",
+      "resolution": "480p",
+      "duration": 5,
+      "description": "Small test video (480p, 5 seconds)"
+    },
+    {
+      "name": "medium_video.mp4",
+      "resolution": "720p",
+      "duration": 10,
+      "description": "Medium test video (720p, 10 seconds)"
+    },
+    {
+      "name": "large_video.mp4",
+      "resolution": "1080p",
+      "duration": 30,
+      "description": "Large test video (1080p, 30 seconds)"
+    }
+  ],
+  "models": [
+    {
+      "name": "realesrgan",
+      "description": "Real-ESRGAN model for super-resolution",
+      "parameters": {
+        "scale": 4,
+        "model_name": "RealESRGAN_x4plus"
+      }
+    },
+    {
+      "name": "swinir",
+      "description": "SwinIR model for super-resolution",
+      "parameters": {
+        "scale": 4,
+        "model_name": "SwinIR_x4"
+      }
+    }
+  ],
+  "iterations": 3,
+  "metrics": [
+    "frame_extraction_time",
+    "super_resolution_time",
+    "video_recomposition_time",
+    "total_time",
+    "memory_usage",
+    "cpu_usage",
+    "gpu_usage"
+  ],
+  "output_formats": [
+    "json",
+    "csv",
+    "png"
+  ]
+}

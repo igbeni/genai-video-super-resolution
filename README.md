@@ -288,13 +288,13 @@ pcluster delete-cluster --cluster-name CLUSTER_NAME --region REGION
 aws cloudformation delete-stack --stack-name STACK-NAME
 ```
 
-## Deployment and Cleanup Script
+## Deployment and Cleanup Scripts
 
-This repository includes a comprehensive script (`deploy_cleanup.sh`) that automates both the deployment and cleanup of all resources required for the video super-resolution pipeline.
+This repository includes comprehensive scripts that automate both the deployment and cleanup of all resources required for the video super-resolution pipeline.
 
-### Deployment
+### Basic Deployment and Cleanup
 
-To deploy the complete solution:
+The `deploy_cleanup.sh` script provides basic deployment and cleanup functionality:
 
 ```
 ./deploy_cleanup.sh deploy \
@@ -316,8 +316,6 @@ This will:
 6. Create the ParallelCluster
 7. Deploy the Lambda function via CloudFormation
 
-### Cleanup
-
 To clean up all resources:
 
 ```
@@ -332,6 +330,46 @@ For more options and details, run:
 
 ```
 ./deploy_cleanup.sh --help
+```
+
+### Advanced Deployment with Environment Management and Blue/Green Strategy
+
+The `deploy_all.sh` script extends the basic deployment functionality with environment management and blue/green deployment support:
+
+```
+./deploy_all.sh \
+  --region us-east-1 \
+  --account 123456789012 \
+  --bucket my-video-super-resolution-bucket \
+  --key-pair my-key-pair \
+  --vpc-id vpc-12345 \
+  --public-subnet subnet-public-12345 \
+  --private-subnet subnet-private-12345 \
+  --environment prod \
+  --blue-green
+```
+
+This will:
+1. Deploy Terraform infrastructure for the specified environment using the blue/green deployment strategy
+2. Append environment and blue/green suffixes to resource names
+3. Call the original `deploy_cleanup.sh` script with the appropriate parameters
+
+#### Key Features
+
+- **Environment Management**: Deploy to different environments (dev, test, prod) with environment-specific configurations
+- **Blue/Green Deployment**: Minimize downtime and risk by deploying to an inactive environment and then switching traffic
+- **Resource Isolation**: Ensure proper isolation between environments with environment-specific resource names
+
+#### Command Line Options
+
+- `-e, --environment ENV`: Specify environment (dev, test, prod) [default: dev]
+- `-g, --blue-green`: Use blue/green deployment strategy
+- `-y, --auto-approve`: Auto approve terraform apply/destroy
+
+For more options and details, run:
+
+```
+./deploy_all.sh --help
 ```
 
 

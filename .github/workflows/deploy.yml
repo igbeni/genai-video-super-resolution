@@ -1,0 +1,143 @@
+name: Build and Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install pytest pytest-cov
+
+    - name: Run unit tests
+      run: |
+        echo "Running unit tests..."
+        pytest tests/ --exclude-dir=tests/integration --exclude-dir=tests/benchmarks --cov=. --cov-report=xml
+
+    - name: Run integration tests
+      run: |
+        echo "Running integration tests..."
+        pytest tests/integration/ --cov=. --cov-report=xml --cov-append
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true
+
+  validate:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.0.0
+
+    - name: Terraform Format
+      run: terraform fmt -check -recursive
+      working-directory: ./terraform
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ./terraform
+
+    - name: Terraform Validate
+      run: terraform validate
+      working-directory: ./terraform
+
+    - name: Run Infrastructure Validation Script
+      run: ./validate_infrastructure.sh
+      working-directory: ./terraform
+
+  build-and-deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.0.0
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ./terraform
+
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
+      working-directory: ./terraform
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve tfplan
+      working-directory: ./terraform
+
+    - name: Build Docker Images
+      run: |
+        # Build RealESRGAN Docker image
+        docker build -t realesrgan:latest ./realesrgan
+
+        # Build SwinIR Docker image
+        docker build -t swinir:latest ./swinir2
+
+        # Tag images for ECR
+        aws_account_id=$(aws sts get-caller-identity --query Account --output text)
+        aws_region=${{ secrets.AWS_REGION }}
+
+        docker tag realesrgan:latest ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/realesrgan:latest
+        docker tag swinir:latest ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/swinir:latest
+
+    - name: Push Docker Images to ECR
+      run: |
+        # Login to ECR
+        aws_account_id=$(aws sts get-caller-identity --query Account --output text)
+        aws_region=${{ secrets.AWS_REGION }}
+
+        aws ecr get-login-password --region ${aws_region} | docker login --username AWS --password-stdin ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com
+
+        # Push images to ECR
+        docker push ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/realesrgan:latest
+        docker push ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/swinir:latest
+
+    - name: Deploy Lambda Functions
+      run: |
+        # Package Lambda functions
+        cd lambda_functions
+        zip -r ../lambda_package.zip .
+        cd ..
+
+        # Update Lambda functions
+        aws lambda update-function-code --function-name pipeline-trigger --zip-file fileb://lambda_package.zip
+        aws lambda update-function-code --function-name intermediate-file-compression --zip-file fileb://lambda_package.zip
+
+    - name: Run Post-Deployment Tests
+      run: |
+        # Run a simple test to verify deployment
+        python tests/integration/test_pipeline_integration.py

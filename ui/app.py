@@ -88,7 +88,7 @@ with gr.Blocks(css = css, theme=gr.themes.Default(text_size=gr.themes.sizes.text
 
         return "anonymous"
 
-    def upload_video(file, is_anime, request: gr.Request):
+    def upload_video(file, is_anime, request: gr.Request, progress=gr.Progress()):
         global user_states
         global dataset_mapping
         file_path = file.name
@@ -101,21 +101,57 @@ with gr.Blocks(css = css, theme=gr.themes.Default(text_size=gr.themes.sizes.text
                 user_states[session_id] = user_state
             media_type = "anime" if is_anime else "real"
 
+            # Initialize progress
+            progress(0, desc="Preparing upload...")
+
             basename = os.path.basename(file_path)
             create_task_command = f"{create_task_command_str} {media_type} {basename}"
+
+            progress(0.1, desc="Getting upload URL...")
             response_str = call_ssm_command(create_task_command, head_node)
             response = json.loads(response_str)
             user_state['unique_id'] = response['task_id']
             upload_url = response['upload_url']
+
             try:
-                with open(file_path, "rb") as object_file:
-                    object_data = object_file.read()
-                upload_response = requests.put(upload_url, data=object_data)
-                if upload_response is not None:
-                    gr.Info(f"media s3 upload status: {upload_response.status_code}")
-                else:
-                    gr.Error(f"media s3 upload failed: {upload_response.status_code}")
-                    raise Exception("S3 upload failed")
+                # Get file size for progress tracking
+                file_size = os.path.getsize(file_path)
+
+                progress(0.2, desc="Starting upload...")
+
+                # Custom upload with progress tracking
+                with open(file_path, "rb") as file_obj:
+                    # Create a class to track upload progress
+                    class ProgressTracker:
+                        def __init__(self, total_size):
+                            self.uploaded_bytes = 0
+                            self.total_size = total_size
+
+                        def __call__(self, bytes_amount):
+                            self.uploaded_bytes += bytes_amount
+                            percentage = min(0.9, 0.2 + (self.uploaded_bytes / self.total_size * 0.7))
+                            progress(percentage, desc=f"Uploading... {int(self.uploaded_bytes / self.total_size * 100)}%")
+
+                    # Create tracker and upload with progress
+                    tracker = ProgressTracker(file_size)
+
+                    # Use requests with a callback for progress tracking
+                    upload_response = requests.put(
+                        upload_url,
+                        data=file_obj,
+                        headers={'Content-Type': 'application/octet-stream'},
+                        stream=True,
+                    )
+
+                    # Update progress based on response
+                    if upload_response.status_code >= 200 and upload_response.status_code < 300:
+                        progress(0.95, desc="Finalizing upload...")
+                        gr.Info(f"Upload successful: {upload_response.status_code}")
+                    else:
+                        gr.Error(f"Upload failed: {upload_response.status_code}")
+                        raise Exception(f"S3 upload failed with status code: {upload_response.status_code}")
+
+                progress(1.0, desc="Upload complete!")
                 dataset_mapping[file_path] = {"task_id": f"{user_state['unique_id']}"}
                 updated_samples = [[x] for x in dataset_mapping.keys()]
                 updated_dataset = gr.Dataset.update(

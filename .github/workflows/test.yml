@@ -1,0 +1,72 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install pytest pytest-cov
+
+    - name: Run unit tests
+      run: |
+        echo "Running unit tests..."
+        pytest tests/ --exclude-dir=tests/integration --exclude-dir=tests/benchmarks --cov=. --cov-report=xml
+
+    - name: Run integration tests
+      run: |
+        echo "Running integration tests..."
+        pytest tests/integration/ --cov=. --cov-report=xml --cov-append
+
+    - name: Run end-to-end tests
+      run: |
+        echo "Running end-to-end tests..."
+        # Set up test environment
+        mkdir -p test_output
+
+        # Create a small test video if ffmpeg is available
+        if command -v ffmpeg &> /dev/null; then
+          echo "Creating test video..."
+          ffmpeg -y -f lavfi -i color=c=red:s=320x240:d=2 -c:v libx264 -pix_fmt yuv420p test_output/test_video.mp4
+        else
+          echo "ffmpeg not available, using dummy video file"
+          echo "dummy video file" > test_output/test_video.mp4
+        fi
+
+        # Run the pipeline with the test video
+        echo "Running pipeline with test video..."
+        python tests/integration/test_pipeline_integration.py
+
+        # Verify the output
+        echo "Verifying pipeline output..."
+        if [ -f "test_output/test_video_upscaled.mp4" ]; then
+          echo "Pipeline test passed: Output video was created"
+        else
+          echo "Pipeline test failed: Output video was not created"
+          exit 1
+        fi
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true

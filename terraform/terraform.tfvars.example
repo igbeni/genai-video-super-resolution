@@ -1,0 +1,61 @@
+# Example Terraform Variables for Video Super-Resolution Pipeline
+# Copy this file to terraform.tfvars and modify as needed
+
+# AWS Configuration
+aws_region = "us-east-1"
+# aws_assume_role_arn = "arn:aws:iam::123456789012:role/TerraformRole"
+
+# Default Tags
+default_tags = {
+  Project     = "Video-Super-Resolution"
+  Environment = "dev"
+  Terraform   = "true"
+  Owner       = "YourName"
+}
+
+# S3 Bucket Names
+# Note: S3 bucket names must be globally unique
+source_bucket_name          = "your-prefix-video-super-resolution-source"
+processed_frames_bucket_name = "your-prefix-video-super-resolution-frames"
+final_videos_bucket_name    = "your-prefix-video-super-resolution-final"
+
+# S3 Bucket Configuration
+enable_versioning               = false
+enable_lifecycle_rules          = true
+intermediate_files_expiration_days = 7
+
+# IAM Role Names (optional - defaults will be used if not specified)
+# lambda_role_name        = "custom-lambda-role-name"
+# ec2_role_name           = "custom-ec2-role-name"
+# batch_service_role_name = "custom-batch-service-role-name"
+# batch_job_role_name     = "custom-batch-job-role-name"
+
+# DynamoDB Table (will be created in a future task)
+# dynamodb_table_arn = "arn:aws:dynamodb:us-east-1:123456789012:table/video-processing-jobs"
+# dynamodb_table_name = "video-super-resolution-jobs"
+
+# Lambda Function Names (optional - defaults will be used if not specified)
+# pipeline_trigger_function_name        = "custom-pipeline-trigger"
+# frame_extraction_function_name        = "custom-frame-extraction"
+# frame_processing_function_name        = "custom-frame-processing"
+# video_recomposition_function_name     = "custom-video-recomposition"
+# completion_notification_function_name = "custom-completion-notification"
+
+# Lambda Function Configuration
+lambda_runtime    = "python3.9"
+lambda_timeout    = 300
+lambda_memory_size = 256
+
+# SNS Topics (optional - defaults will be used if not specified)
+# extract_frames_topic_name      = "custom-extract-frames-topic"
+# processing_topic_name          = "custom-processing-topic"
+# recomposition_topic_name       = "custom-recomposition-topic"
+# notification_topic_name        = "custom-notification-topic"
+# email_notification_topic_name  = "custom-email-notification-topic"
+
+# Email Notification (optional - leave empty to disable)
+notification_email = "your-email@example.com"
+
+# AWS Batch (will be created in a future task)
+# batch_job_queue      = "arn:aws:batch:us-east-1:123456789012:job-queue/video-processing-queue"
+# batch_job_definition = "arn:aws:batch:us-east-1:123456789012:job-definition/video-processing-job:1"
