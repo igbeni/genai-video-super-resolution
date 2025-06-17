@@ -17,6 +17,12 @@ from botocore.exceptions import ClientError
 from botocore.config import Config
 from PIL import Image
 
+# Import the patch for torchvision before importing basicsr
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import patch_torchvision
+
 from basicsr.archs.rrdbnet_arch import RRDBNet
 from basicsr.utils.download_util import load_file_from_url
 
