@@ -30,7 +30,7 @@ jobs:
     - name: Run unit tests
       run: |
         echo "Running unit tests..."
-        pytest tests/ --exclude-dir=tests/integration --exclude-dir=tests/benchmarks --cov=. --cov-report=xml
+        pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks --cov=. --cov-report=xml
 
     - name: Run integration tests
       run: |
