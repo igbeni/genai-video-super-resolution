@@ -30,7 +30,7 @@ jobs:
     - name: Run unit tests
       run: |
         echo "Running unit tests..."
-        pytest tests/ --ignore=tests/integration --ignore=tests/benchmarks --cov=. --cov-report=xml
+        pytest tests/ lambda_functions/tests/ realesrgan/test/ swinir2/test/ --ignore=tests/integration --ignore=tests/benchmarks --cov=. --cov-report=xml
       continue-on-error: false
 
     - name: Run integration tests
