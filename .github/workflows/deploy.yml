@@ -11,7 +11,7 @@ jobs:
         python-version: [3.9]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
@@ -67,10 +67,12 @@ jobs:
       run: ./validate_infrastructure.sh
       working-directory: ./terraform
 
-  build-and-deploy:
+  build:
     needs: validate
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    outputs:
+      deployment_id: ${{ steps.generate-id.outputs.deployment_id }}
 
     steps:
     - uses: actions/checkout@v2
@@ -81,6 +83,10 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Generate Deployment ID
+      id: generate-id
+      run: echo "deployment_id=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
 
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
@@ -102,16 +108,21 @@ jobs:
     - name: Build Docker Images
       run: |
         # Build RealESRGAN Docker image
+        docker build -t realesrgan:${{ steps.generate-id.outputs.deployment_id }} ./realesrgan
         docker build -t realesrgan:latest ./realesrgan
 
         # Build SwinIR Docker image
+        docker build -t swinir:${{ steps.generate-id.outputs.deployment_id }} ./swinir2
         docker build -t swinir:latest ./swinir2
 
         # Tag images for ECR
         aws_account_id=$(aws sts get-caller-identity --query Account --output text)
         aws_region=${{ secrets.AWS_REGION }}
 
+        docker tag realesrgan:${{ steps.generate-id.outputs.deployment_id }} ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/realesrgan:${{ steps.generate-id.outputs.deployment_id }}
         docker tag realesrgan:latest ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/realesrgan:latest
+
+        docker tag swinir:${{ steps.generate-id.outputs.deployment_id }} ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/swinir:${{ steps.generate-id.outputs.deployment_id }}
         docker tag swinir:latest ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/swinir:latest
 
     - name: Push Docker Images to ECR
@@ -123,21 +134,345 @@ jobs:
         aws ecr get-login-password --region ${aws_region} | docker login --username AWS --password-stdin ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com
 
         # Push images to ECR
+        docker push ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/realesrgan:${{ steps.generate-id.outputs.deployment_id }}
         docker push ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/realesrgan:latest
+
+        docker push ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/swinir:${{ steps.generate-id.outputs.deployment_id }}
         docker push ${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/swinir:latest
 
-    - name: Deploy Lambda Functions
+    - name: Package Lambda Functions
       run: |
         # Package Lambda functions
         cd lambda_functions
         zip -r ../lambda_package.zip .
         cd ..
 
-        # Update Lambda functions
-        aws lambda update-function-code --function-name pipeline-trigger --zip-file fileb://lambda_package.zip
-        aws lambda update-function-code --function-name intermediate-file-compression --zip-file fileb://lambda_package.zip
+        # Save the package for later jobs
+        mkdir -p /tmp/artifacts
+        cp lambda_package.zip /tmp/artifacts/lambda_package.zip
+
+    - name: Upload Lambda Package
+      uses: actions/upload-artifact@v2
+      with:
+        name: lambda-package
+        path: /tmp/artifacts/lambda_package.zip
+
+  deploy-green:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Download Lambda Package
+      uses: actions/download-artifact@v2
+      with:
+        name: lambda-package
+        path: /tmp/artifacts
+
+    - name: Deploy Green Lambda Functions
+      run: |
+        # Get deployment ID
+        DEPLOYMENT_ID=${{ needs.build.outputs.deployment_id }}
+
+        # Create new Lambda function versions
+        echo "Creating new Lambda function versions..."
+
+        # Update Lambda functions with new code
+        aws lambda update-function-code \
+          --function-name pipeline-trigger \
+          --zip-file fileb:///tmp/artifacts/lambda_package.zip \
+          --publish \
+          --output json > /tmp/pipeline-trigger-version.json
+
+        aws lambda update-function-code \
+          --function-name intermediate-file-compression \
+          --zip-file fileb:///tmp/artifacts/lambda_package.zip \
+          --publish \
+          --output json > /tmp/intermediate-file-compression-version.json
+
+        # Get the version numbers
+        PIPELINE_TRIGGER_VERSION=$(cat /tmp/pipeline-trigger-version.json | jq -r '.Version')
+        COMPRESSION_VERSION=$(cat /tmp/intermediate-file-compression-version.json | jq -r '.Version')
+
+        # Create or update aliases for green deployment
+        echo "Creating/updating green aliases..."
+
+        aws lambda create-alias \
+          --function-name pipeline-trigger \
+          --name green \
+          --function-version $PIPELINE_TRIGGER_VERSION \
+          --description "Green deployment for $DEPLOYMENT_ID" \
+          || aws lambda update-alias \
+             --function-name pipeline-trigger \
+             --name green \
+             --function-version $PIPELINE_TRIGGER_VERSION \
+             --description "Green deployment for $DEPLOYMENT_ID"
+
+        aws lambda create-alias \
+          --function-name intermediate-file-compression \
+          --name green \
+          --function-version $COMPRESSION_VERSION \
+          --description "Green deployment for $DEPLOYMENT_ID" \
+          || aws lambda update-alias \
+             --function-name intermediate-file-compression \
+             --name green \
+             --function-version $COMPRESSION_VERSION \
+             --description "Green deployment for $DEPLOYMENT_ID"
+
+    - name: Deploy Green SageMaker Endpoints
+      run: |
+        # Get deployment ID
+        DEPLOYMENT_ID=${{ needs.build.outputs.deployment_id }}
+        aws_account_id=$(aws sts get-caller-identity --query Account --output text)
+        aws_region=${{ secrets.AWS_REGION }}
+
+        # Create new endpoint configurations with the new model versions
+        echo "Creating new SageMaker endpoint configurations..."
+
+        # Create new endpoint configurations for RealESRGAN
+        aws sagemaker create-endpoint-config \
+          --endpoint-config-name realesrgan-config-$DEPLOYMENT_ID \
+          --production-variants "VariantName=green,ModelName=realesrgan,InitialInstanceCount=1,InstanceType=ml.m5.large,InitialVariantWeight=1.0,ContainerStartupHealthCheckTimeoutInSeconds=600" \
+          --tags Key=Deployment,Value=$DEPLOYMENT_ID
+
+        # Create new endpoint configurations for SwinIR
+        aws sagemaker create-endpoint-config \
+          --endpoint-config-name swinir-config-$DEPLOYMENT_ID \
+          --production-variants "VariantName=green,ModelName=swinir,InitialInstanceCount=1,InstanceType=ml.m5.large,InitialVariantWeight=1.0,ContainerStartupHealthCheckTimeoutInSeconds=600" \
+          --tags Key=Deployment,Value=$DEPLOYMENT_ID
+
+        # Create new endpoints for green deployment
+        echo "Creating green SageMaker endpoints..."
+
+        aws sagemaker create-endpoint \
+          --endpoint-name realesrgan-$DEPLOYMENT_ID \
+          --endpoint-config-name realesrgan-config-$DEPLOYMENT_ID \
+          --tags Key=Deployment,Value=$DEPLOYMENT_ID
+
+        aws sagemaker create-endpoint \
+          --endpoint-name swinir-$DEPLOYMENT_ID \
+          --endpoint-config-name swinir-config-$DEPLOYMENT_ID \
+          --tags Key=Deployment,Value=$DEPLOYMENT_ID
+
+        # Wait for endpoints to be in service
+        echo "Waiting for green endpoints to be in service..."
+
+        aws sagemaker wait endpoint-in-service --endpoint-name realesrgan-$DEPLOYMENT_ID
+        aws sagemaker wait endpoint-in-service --endpoint-name swinir-$DEPLOYMENT_ID
+
+  test-green:
+    needs: [build, deploy-green]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install pytest boto3
+
+    - name: Test Green Environment
+      run: |
+        # Get deployment ID
+        DEPLOYMENT_ID=${{ needs.build.outputs.deployment_id }}
+
+        # Set environment variables for tests to use green environment
+        export DEPLOYMENT_ID=$DEPLOYMENT_ID
+        export USE_GREEN_ENVIRONMENT=true
+
+        # Run tests against green environment
+        echo "Running tests against green environment..."
+        python tests/integration/test_pipeline_integration.py
+
+        # If tests fail, the workflow will stop here
+
+  promote-to-production:
+    needs: [build, deploy-green, test-green]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Promote Lambda Functions to Production
+      run: |
+        # Get deployment ID
+        DEPLOYMENT_ID=${{ needs.build.outputs.deployment_id }}
+
+        # Get the green alias versions
+        PIPELINE_TRIGGER_VERSION=$(aws lambda get-alias --function-name pipeline-trigger --name green | jq -r '.FunctionVersion')
+        COMPRESSION_VERSION=$(aws lambda get-alias --function-name intermediate-file-compression --name green | jq -r '.FunctionVersion')
+
+        # Create or update production aliases to point to the green versions
+        echo "Promoting Lambda functions to production..."
+
+        aws lambda create-alias \
+          --function-name pipeline-trigger \
+          --name production \
+          --function-version $PIPELINE_TRIGGER_VERSION \
+          --description "Production deployment from $DEPLOYMENT_ID" \
+          || aws lambda update-alias \
+             --function-name pipeline-trigger \
+             --name production \
+             --function-version $PIPELINE_TRIGGER_VERSION \
+             --description "Production deployment from $DEPLOYMENT_ID"
+
+        aws lambda create-alias \
+          --function-name intermediate-file-compression \
+          --name production \
+          --function-version $COMPRESSION_VERSION \
+          --description "Production deployment from $DEPLOYMENT_ID" \
+          || aws lambda update-alias \
+             --function-name intermediate-file-compression \
+             --name production \
+             --function-version $COMPRESSION_VERSION \
+             --description "Production deployment from $DEPLOYMENT_ID"
+
+    - name: Promote SageMaker Endpoints to Production
+      run: |
+        # Get deployment ID
+        DEPLOYMENT_ID=${{ needs.build.outputs.deployment_id }}
+
+        # Update the production endpoints to use the new endpoint configurations
+        echo "Promoting SageMaker endpoints to production..."
+
+        # Check if production endpoints exist
+        if aws sagemaker describe-endpoint --endpoint-name realesrgan 2>/dev/null; then
+          # Update existing endpoints
+          aws sagemaker update-endpoint \
+            --endpoint-name realesrgan \
+            --endpoint-config-name realesrgan-config-$DEPLOYMENT_ID
+        else
+          # Create new endpoints with production names
+          aws sagemaker create-endpoint \
+            --endpoint-name realesrgan \
+            --endpoint-config-name realesrgan-config-$DEPLOYMENT_ID \
+            --tags Key=Deployment,Value=$DEPLOYMENT_ID
+        fi
+
+        if aws sagemaker describe-endpoint --endpoint-name swinir 2>/dev/null; then
+          # Update existing endpoints
+          aws sagemaker update-endpoint \
+            --endpoint-name swinir \
+            --endpoint-config-name swinir-config-$DEPLOYMENT_ID
+        else
+          # Create new endpoints with production names
+          aws sagemaker create-endpoint \
+            --endpoint-name swinir \
+            --endpoint-config-name swinir-config-$DEPLOYMENT_ID \
+            --tags Key=Deployment,Value=$DEPLOYMENT_ID
+        fi
+
+        # Wait for endpoints to be in service
+        echo "Waiting for production endpoints to be in service..."
+
+        aws sagemaker wait endpoint-in-service --endpoint-name realesrgan
+        aws sagemaker wait endpoint-in-service --endpoint-name swinir
 
     - name: Run Post-Deployment Tests
       run: |
         # Run a simple test to verify deployment
         python tests/integration/test_pipeline_integration.py
+
+  rollback:
+    needs: [build, deploy-green, test-green, promote-to-production]
+    runs-on: ubuntu-latest
+    if: failure() && github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Rollback Lambda Functions
+      run: |
+        # Get the previous production versions
+        PREVIOUS_PIPELINE_TRIGGER_VERSION=$(aws lambda get-alias --function-name pipeline-trigger --name production 2>/dev/null | jq -r '.FunctionVersion' || echo "1")
+        PREVIOUS_COMPRESSION_VERSION=$(aws lambda get-alias --function-name intermediate-file-compression --name production 2>/dev/null | jq -r '.FunctionVersion' || echo "1")
+
+        # Update production aliases to point back to the previous versions
+        echo "Rolling back Lambda functions to previous versions..."
+
+        aws lambda update-alias \
+          --function-name pipeline-trigger \
+          --name production \
+          --function-version $PREVIOUS_PIPELINE_TRIGGER_VERSION \
+          --description "Rollback to previous version"
+
+        aws lambda update-alias \
+          --function-name intermediate-file-compression \
+          --name production \
+          --function-version $PREVIOUS_COMPRESSION_VERSION \
+          --description "Rollback to previous version"
+
+    - name: Rollback SageMaker Endpoints
+      run: |
+        # Get the previous endpoint configurations
+        PREVIOUS_REALESRGAN_CONFIG=$(aws sagemaker describe-endpoint --endpoint-name realesrgan 2>/dev/null | jq -r '.EndpointConfigName' || echo "")
+        PREVIOUS_SWINIR_CONFIG=$(aws sagemaker describe-endpoint --endpoint-name swinir 2>/dev/null | jq -r '.EndpointConfigName' || echo "")
+
+        # If previous configs exist, roll back to them
+        if [ ! -z "$PREVIOUS_REALESRGAN_CONFIG" ] && [ "$PREVIOUS_REALESRGAN_CONFIG" != "null" ]; then
+          echo "Rolling back RealESRGAN endpoint to previous configuration..."
+          aws sagemaker update-endpoint \
+            --endpoint-name realesrgan \
+            --endpoint-config-name $PREVIOUS_REALESRGAN_CONFIG
+        fi
+
+        if [ ! -z "$PREVIOUS_SWINIR_CONFIG" ] && [ "$PREVIOUS_SWINIR_CONFIG" != "null" ]; then
+          echo "Rolling back SwinIR endpoint to previous configuration..."
+          aws sagemaker update-endpoint \
+            --endpoint-name swinir \
+            --endpoint-config-name $PREVIOUS_SWINIR_CONFIG
+        fi
+
+        # Wait for endpoints to be in service
+        echo "Waiting for rolled back endpoints to be in service..."
+
+        if [ ! -z "$PREVIOUS_REALESRGAN_CONFIG" ] && [ "$PREVIOUS_REALESRGAN_CONFIG" != "null" ]; then
+          aws sagemaker wait endpoint-in-service --endpoint-name realesrgan
+        fi
+
+        if [ ! -z "$PREVIOUS_SWINIR_CONFIG" ] && [ "$PREVIOUS_SWINIR_CONFIG" != "null" ]; then
+          aws sagemaker wait endpoint-in-service --endpoint-name swinir
+        fi
+
+    - name: Notify Rollback
+      run: |
+        echo "Deployment failed and has been rolled back to the previous version."
